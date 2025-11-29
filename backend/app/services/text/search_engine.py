@@ -3,6 +3,7 @@ import json
 import math
 from collections import defaultdict
 from app.services.text.preprocess import preprocess
+from app.services.text.index_utils import load_doc, get_snippet
 
 INDEX_DIR = "../../../index_text/"
 DICT_PATH = os.path.join(INDEX_DIR, "dictionary.txt")
@@ -133,12 +134,20 @@ def search_query(q, k=10):
 
     # 7. Formato de salida
     final_results = []
-    for docID, score in results:
+    for trackId, score in results:
+
+        doc = load_doc(trackId)
+        if doc is None:
+            continue
+
+        snippet = get_snippet(doc["lyrics"], terms)
+
         final_results.append({
-            "docID": docID,
-            "score": float(score)
+            "trackId": trackId,
+            "score": float(score),
+            "name": doc.get("name"),
+            "artist": doc.get("artist"),
+            "snippet": snippet
         })
 
     return final_results
-
-print(search_query("Love", 5))

@@ -134,5 +134,3 @@ def merge_blocks(N):
     print(f" - {dict_path}")
     print(f" - {postings_path}")
     print(f" - {norms_path}")
-
-merge_blocks(991)
