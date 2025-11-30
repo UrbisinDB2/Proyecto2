@@ -3,11 +3,6 @@ import nltk
 from nltk.stem import SnowballStemmer
 from nltk.corpus import stopwords
 
-# Descargar recursos de NLTK una sola vez
-# Puedes mover esto a un init o a tu build_index para evitar que corra siempre
-#TODO
-# nltk.download("stopwords")
-
 stemmer = SnowballStemmer("spanish")
 
 stop = set(stopwords.words("spanish"))
