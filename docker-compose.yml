@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: multimodal_db_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Montar el código fuente para desarrollo (hot reload)
+      - ./backend/app:/app/app
+      - ./backend/data:/app/data
+      - ./backend/blocks_text:/app/blocks_text
+      - ./backend/index_text:/app/index_text
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ENVIRONMENT=development
+    restart: unless-stopped
+    networks:
+      - app-network
+
+#  frontend:
+#    build:
+#      context: ./frontend
+#      dockerfile: Dockerfile
+#    container_name: multimodal_db_frontend
+#    ports:
+#      - "3000:3000"
+#    volumes:
+#      # Montar código para hot reload
+#      - ./frontend:/app
+#      - /app/node_modules
+#    environment:
+#      - NODE_ENV=development
+#      - REACT_APP_API_URL=http://localhost:8000
+#    depends_on:
+#      - backend
+#    restart: unless-stopped
+#    networks:
+#      - app-network
+
+networks:
+  app-network:
+    driver: bridge
