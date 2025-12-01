@@ -6,3 +6,61 @@ backend/data/fashion/images/
 backend/test_search.py
 env/
 
+# --- Node ---
+frontend/node_modules/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+frontend/*.log
+
+# --- Next.js build output ---
+frontend/.next/
+frontend/out/
+frontend/dist/
+
+# --- Tailwind / PostCSS cache ---
+frontend/.pnp.cjs
+frontend/.pnp.loader.mjs
+
+# --- Environment variables ---
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.production.local
+frontend/.env.test.local
+
+# --- OS files ---
+frontend/.DS_Store
+frontend/Thumbs.db
+
+# --- Vercel ---
+frontend/.vercel
+
+# --- Editor configs ---
+frontend/.vscode/
+frontend/.idea/
+
+# --- Lint cache ---
+frontend/.eslintcache
+
+# --- TypeScript ---
+frontend/*.tsbuildinfo
+
+# --- Turbopack (Next.js 13/14) ---
+frontend/.next/cache/
+
+# --- Temporary files ---
+frontend/*.tmp
+frontend/*.swp
+frontend/*.swo
+
+# --- Build artifacts ---
+frontend/*.bundle.js
+frontend/*.map
+
+# --- V0 generated assets (optional, depending on project) ---
+frontend/.v0/
+frontend/.v0.cache/
+
+
