@@ -1,6 +1,6 @@
 import json
 
-DOCS_PATH = "../../../index_text/documents.jsonl"
+DOCS_PATH = "/index_text/documents.jsonl"
 
 def load_doc(trackId):
     """

@@ -17,14 +17,7 @@ export default function ResultCard({ result, index }) {
       </div>
 
       {/* Title */}
-      <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">{result.title || "Untitled"}</h3>
-
-      {/* Artist */}
-      {result.artist && (
-        <p className="text-sm text-gray-600 mb-3">
-          <span className="font-semibold">Artist:</span> {result.artist}
-        </p>
-      )}
+      <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">{result.name || "Untitled"}</h3>
 
       {/* Snippet */}
       {result.snippet && (

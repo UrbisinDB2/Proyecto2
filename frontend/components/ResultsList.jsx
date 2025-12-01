@@ -22,6 +22,8 @@ export default function ResultsList({ results, isLoading, responseTime }) {
     )
   }
 
+  console.log(results);
+
   return (
     <div className="space-y-6">
       {/* Results Header */}

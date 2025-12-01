@@ -18,14 +18,16 @@ export default function Home() {
 
         try {
             // Construir URL con query params
-            const url = new URL("https://localhost:8000/search/");
+            const url = new URL("http://localhost:8000/search/");
 
             url.searchParams.append("q", q);
             url.searchParams.append("k", k);
             url.searchParams.append("file_name", file_name);
 
+            console.log(url);
+
             const response = await fetch(url.toString(), {
-                method: "POST", // tu backend usa POST, lo mantenemos
+                method: "GET", // tu backend usa POST, lo mantenemos
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -37,8 +39,10 @@ export default function Home() {
 
             const data = await response.json();
 
+            console.log(data);
+
             setResults(data.results || []);
-            setResponseTime(data.responseTime || 0);
+            setResponseTime(data.execution_time || 0);
 
         } catch (error) {
             console.error("Error:", error);

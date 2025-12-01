@@ -21,25 +21,24 @@ services:
     networks:
       - app-network
 
-#  frontend:
-#    build:
-#      context: ./frontend
-#      dockerfile: Dockerfile
-#    container_name: multimodal_db_frontend
-#    ports:
-#      - "3000:3000"
-#    volumes:
-#      # Montar código para hot reload
-#      - ./frontend:/app
-#      - /app/node_modules
-#    environment:
-#      - NODE_ENV=development
-#      - REACT_APP_API_URL=http://localhost:8000
-#    depends_on:
-#      - backend
-#    restart: unless-stopped
-#    networks:
-#      - app-network
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: multimodal_frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app           # mount src for hot reload
+      - /app/node_modules         # prevent overwriting node_modules
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    restart: unless-stopped
 
 networks:
   app-network:
