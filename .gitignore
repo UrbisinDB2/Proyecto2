@@ -2,3 +2,7 @@ blocks_text/
 index_text/
 .venv/
 .idea/
+backend/data/fashion/images/
+backend/test_search.py
+env/
+
