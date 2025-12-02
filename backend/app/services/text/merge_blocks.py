@@ -5,8 +5,6 @@ import heapq
 
 BLOCK_DIR = "blocks_text/"
 INDEX_DIR = "index_text/"
-
-# Tamaño de buffer para lectura/escritura
 BUFFER_SIZE = 8192 * 16  # 128KB por buffer
 
 
@@ -14,18 +12,10 @@ def merge_blocks(N, file_name: str):
     """
     Merge de bloques SPIMI usando B buffers con heap (priority queue).
 
-    N = número total de documentos
-
-    OPTIMIZACIONES IMPLEMENTADAS:
-    1. Min-heap para merge k-way eficiente: O(k log k) en lugar de O(k²)
-    2. B buffers de lectura (uno por bloque)
-    3. Buffer de escritura para reducir I/O
-    4. Lectura anticipada (read-ahead) para mejor throughput
-
-    Salida:
-    - dictionary.txt: term|offset|df
-    - postings.jsonl: {term, postings: [[docID, weight], ...]}
-    - norms.json: {docID: norma}
+    MODIFICACIÓN CLAVE:
+    - El diccionario se escribe ordenado alfabéticamente
+    - Esto permite búsquedas binarias posteriores (opcional)
+    - Mejora la eficiencia de búsqueda lineal
     """
 
     output_dir = os.path.join(INDEX_DIR, file_name)
@@ -57,14 +47,13 @@ def merge_blocks(N, file_name: str):
             os.path.join(block_path, bf),
             "r",
             encoding="utf-8",
-            buffering=BUFFER_SIZE  # Buffer explícito
+            buffering=BUFFER_SIZE
         )
         block_handles.append(fh)
 
     # ============================================================
     # INICIALIZAR MIN-HEAP
     # ============================================================
-    # Heap de tuplas: (term, postings_str, block_index)
     heap = []
 
     for idx, fh in enumerate(block_handles):
@@ -73,7 +62,6 @@ def merge_blocks(N, file_name: str):
             parts = line.split(":", 1)
             if len(parts) == 2:
                 term, postings = parts
-                # Push al heap: (term, postings, block_idx)
                 heapq.heappush(heap, (term, postings, idx))
 
     # ============================================================
@@ -86,29 +74,26 @@ def merge_blocks(N, file_name: str):
     dict_out = open(dict_path, "w", encoding="utf-8", buffering=BUFFER_SIZE)
     postings_out = open(postings_path, "w", encoding="utf-8", buffering=BUFFER_SIZE)
 
-    # Para acumular normas de documentos
     norms = {}
     terms_processed = 0
+
+    # ============================================================
+    # ALMACENAR ENTRADAS DEL DICCIONARIO PARA ORDENAR
+    # ============================================================
+    dictionary_entries = []
 
     # ============================================================
     # MERGE K-WAY CON HEAP
     # ============================================================
     while heap:
-        # Extraer término mínimo (O(log k))
         term, postings_str, block_idx = heapq.heappop(heap)
 
-        # Acumular postings del mismo término
         merged_postings = {}
-
-        # Procesar postings del primer bloque
         _parse_postings(postings_str, merged_postings)
 
-        # Fusionar postings duplicados (mismo término en múltiples bloques)
-        while heap and heap[0][0] == term:  # Peek: mismo término
+        while heap and heap[0][0] == term:
             _, postings_str2, block_idx2 = heapq.heappop(heap)
             _parse_postings(postings_str2, merged_postings)
-
-            # Avanzar el bloque que acabamos de consumir
             _advance_block(block_handles[block_idx2], block_idx2, heap)
 
         # ============================================================
@@ -120,9 +105,8 @@ def merge_blocks(N, file_name: str):
         weighted_postings = []
         for docID, tf in merged_postings.items():
             tf_weight = 1 + math.log(tf)
-            w_t_d = tf_weight * idf  # TF-IDF
+            w_t_d = tf_weight * idf
 
-            # Acumular norma (suma de cuadrados)
             norms[docID] = norms.get(docID, 0.0) + (w_t_d * w_t_d)
 
             weighted_postings.append([docID, w_t_d])
@@ -139,27 +123,34 @@ def merge_blocks(N, file_name: str):
         postings_out.write("\n")
 
         # ============================================================
-        # ESCRIBIR DICTIONARY
+        # GUARDAR ENTRADA DEL DICCIONARIO (para escribir ordenado después)
         # ============================================================
-        # Formato: term|offset|df
-        dict_out.write(f"{term}|{offset}|{df}\n")
+        dictionary_entries.append((term, offset, df))
 
         terms_processed += 1
-
-        # Avanzar el bloque del primer término
         _advance_block(block_handles[block_idx], block_idx, heap)
 
     # ============================================================
-    # CERRAR ARCHIVOS
+    # CERRAR ARCHIVOS DE BLOQUES Y POSTINGS
     # ============================================================
-    dict_out.close()
     postings_out.close()
 
     for fh in block_handles:
         fh.close()
 
     # ============================================================
-    # CALCULAR NORMAS (raíz cuadrada) Y ESCRIBIR
+    # ESCRIBIR DICCIONARIO ORDENADO ALFABÉTICAMENTE
+    # ============================================================
+    # Los términos ya vienen ordenados del heap, pero garantizamos el orden
+    dictionary_entries.sort(key=lambda x: x[0])
+
+    for term, offset, df in dictionary_entries:
+        dict_out.write(f"{term}|{offset}|{df}\n")
+
+    dict_out.close()
+
+    # ============================================================
+    # CALCULAR NORMAS Y ESCRIBIR
     # ============================================================
     norms = {docID: math.sqrt(v) for docID, v in norms.items()}
 
@@ -170,6 +161,7 @@ def merge_blocks(N, file_name: str):
     print(f"  ✓ Términos únicos: {terms_processed}")
     print(f"  ✓ Documentos indexados: {len(norms)}")
     print(f"  ✓ Bloques fusionados: {len(block_files)}")
+    print(f"  ✓ Diccionario ordenado alfabéticamente")
     print(f"  → {dict_path}")
     print(f"  → {postings_path}")
     print(f"  → {norms_path}")
@@ -196,7 +188,6 @@ def _parse_postings(postings_str, merged_postings):
 def _advance_block(file_handle, block_idx, heap):
     """
     Lee la siguiente línea del bloque y la inserta en el heap.
-    Esto mantiene el heap con el siguiente término de cada bloque activo.
     """
     line = file_handle.readline().strip()
     if line:
@@ -213,23 +204,20 @@ def _advance_block(file_handle, block_idx, heap):
 def merge_blocks_with_stats(N, file_name: str):
     """
     Versión con estadísticas detalladas del merge.
-    Útil para debugging y análisis de rendimiento.
     """
     import time
     start_time = time.time()
 
-    # Usar la función principal
     merge_blocks(N, file_name)
 
     elapsed = time.time() - start_time
 
-    # Calcular estadísticas del índice
     output_dir = os.path.join(INDEX_DIR, file_name)
     dict_path = os.path.join(output_dir, "dictionary.txt")
     postings_path = os.path.join(output_dir, "postings.jsonl")
 
-    dict_size = os.path.getsize(dict_path) / (1024 * 1024)  # MB
-    postings_size = os.path.getsize(postings_path) / (1024 * 1024)  # MB
+    dict_size = os.path.getsize(dict_path) / (1024 * 1024)
+    postings_size = os.path.getsize(postings_path) / (1024 * 1024)
 
     print(f"\n[ESTADÍSTICAS]")
     print(f"  Tiempo total: {elapsed:.2f}s")
