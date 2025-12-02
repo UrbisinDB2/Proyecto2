@@ -735,6 +735,16 @@ Estas imágenes permiten evidenciar la funcionalidad del sistema.
 
 ![res.png](images/res.png)
 
+
+## Resultados de Búsqueda Multimedia 
+
+![Resultadoimg1.png](images/Resultadoimg1.png)
+
+![Resultadoimg2.png](images/Resultadoimg2.png)
+
+
+
+
 ### Analisis y discusión
 
 ## 1. Rendimiento (Performance)

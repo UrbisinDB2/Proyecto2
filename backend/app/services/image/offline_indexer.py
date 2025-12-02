@@ -11,7 +11,7 @@ from app.services.image.feature_extractor import SIFTFeatureExtractor
 DATA_DIR = "data/fashion/images"  
 OUTPUT_DIR = "data/fashion/models"
 K_CLUSTERS = 1000
-SAMPLE_SIZE_FOR_TRAINING = 3000 
+SAMPLE_SIZE_FOR_TRAINING =3000  
 
 def run_indexing():
     if not os.path.exists(OUTPUT_DIR): os.makedirs(OUTPUT_DIR)
