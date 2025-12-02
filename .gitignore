@@ -63,4 +63,6 @@ frontend/*.map
 frontend/.v0/
 frontend/.v0.cache/
 
-
+.DS_Store
+*.DS_Store
+backend/data/fashion/models/*.pkl

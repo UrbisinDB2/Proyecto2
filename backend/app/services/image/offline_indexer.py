@@ -10,7 +10,7 @@ from app.services.image.feature_extractor import SIFTFeatureExtractor
 # CONFIGURACIÓN
 DATA_DIR = "data/fashion/images"  
 OUTPUT_DIR = "data/fashion/models"
-K_CLUSTERS = 100
+K_CLUSTERS = 1000
 SAMPLE_SIZE_FOR_TRAINING = 3000 
 
 def run_indexing():
@@ -43,7 +43,7 @@ def run_indexing():
         for path in tqdm(training_paths, desc="Extrayendo SIFT (Train)"):
             des = extractor.extract(path)
             if des is not None:
-                all_descriptors.append(des)
+                all_descriptors.append(des.astype(np.float64))
 
         if len(all_descriptors) == 0:
             print("Error: No se pudieron extraer descriptores.")
@@ -114,14 +114,28 @@ def run_indexing():
     idf = np.log(N / (doc_freq + 1))
     
     final_inverted_index = {}
-    for word_idx, postings in inverted_index.items():
-        weighted_postings = [(pid, tf * idf[word_idx]) for pid, tf in postings]
-        final_inverted_index[word_idx] = weighted_postings
+    norms = {}
+
+    # Recorremos los histogramas para calcular normas y pesos finales
+    for img_id, hist in tqdm(histograms.items(), desc="Optimizando Datos"):
+        # Reconstruimos el vector TF-IDF
+        vec_tfidf = hist * idf
+        
+        # Calculamos la norma
+        norms[img_id] = np.linalg.norm(vec_tfidf)
+        
+        # Guardamos en el índice invertido el peso ya multiplicado por IDF
+        for word_idx, tf_val in enumerate(hist):
+            if tf_val > 0:
+                weighted_score = tf_val * idf[word_idx]
+                if word_idx not in final_inverted_index: final_inverted_index[word_idx] = []
+                final_inverted_index[word_idx].append([img_id, weighted_score])    
 
     print("Guardando archivos en disco")
     joblib.dump(histograms, os.path.join(OUTPUT_DIR, "histograms.pkl"))
     joblib.dump(final_inverted_index, os.path.join(OUTPUT_DIR, "inverted_index.pkl"))
     joblib.dump(idf, os.path.join(OUTPUT_DIR, "idf_weights.pkl"))
+    joblib.dump(norms, os.path.join(OUTPUT_DIR, "norms.pkl"))
     
     print("Proceso Terminado, Base de datos multimedia lista")
 

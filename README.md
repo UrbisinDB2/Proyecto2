@@ -6,7 +6,7 @@
 |Integrantes|Porcentaje|
 |-----------|-----------|
 |Sebastian Alonso Urbina Claros|100%|
-|Anthony Roca|100%|
+|Anthony Raul Roca Condori |100%|
 
 ---
 
